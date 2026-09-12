@@ -265,7 +265,7 @@ NIC allows a device to connect to a network.<br>
 A device can have multiple NICs and hence multiple MAC addresses.<br>
 Wi-Fi NIC, connects to the Wifi.<br>
 Ethernet NIC, connects to the router/switch using cable.<br>
-We also have a loopback virtual interface(`127.0.0.1`) for local 
+We also have a loopback virtual interface(`127.0.0.1`) for communication in same machine, loopback has no real MAC because there's no physical wire involved.
 Each Network interface has its own MAC address, so a MAC address belongs to a network interface, not to the device as a whole.<br>
 `ifconfig` command can list all the network interfaces your device have.
 
@@ -286,12 +286,30 @@ IP: 10.20.0.10/24
 No default gateway needed
 ```
 Server calls the database Destination: `10.20.0.50` 
-The OS sees that 10.20.0.50 matches: `10.20.0.0/24` → `eth1`
+The OS checks its routing table and sees that `10.20.0.50` matches: `10.20.0.0/24` → `eth1`
 So it chooses `eth1` and source IP `10.20.0.10`.
 ARPs for the database MAC address and sends the Ethernet frame through the backend switch directly to the database.
 In this way, Firewalls can allow only the server’s private subnet to reach the DB port, such as PostgreSQL 5432.
+If the Destination is outside the subnet, server uses `eth0` and source IP `203.0.113.10`, ARPs for the gateway/router’s MAC and sends the frame to the public router.
 
-if the Destination is outside the subnet, server uses `eth0` and source IP `203.0.113.10`, ARPs for the gateway/router’s MAC and sends the frame to the public router.
+We know that a device can have several NICs (Wi-Fi, Ethernet, loopback, etc.) each with its own MAC address and it also means that each interface has its own IP.
+So a single machine/server is simultaneously reachable at several different IPs at once.
+Since a process runs on a particular IP address and port, therefore the process running on a server(Spring boot or NodeJS application) has to choose which of these IPs to bind itself to.
+Loopback (`127.0.0.1`) is a way for two programs on the same machine to talk over the network stack without ever touching a NIC, switch.
+
+“listening on an IP” means:
+“Kernel, if a TCP packet arrives with this destination IP and this destination port, give the resulting connection to my process.”
+
+If the application listening on `127.0.0.1:8080`, only packets from the same machine can reach reach the application.
+If the application listening on `10.20.0.10:8080`, only packets which are sent to the private NIC can reach the application.
+If the application listening on `203.0.113.10:8080`, only packets which are sent to the public NIC can reach the application.
+
+**Listening on different IPs and Port combination does not mean that a process is running multiple times, process runs only once and we configure the application to listen on the network interfaces.**
+
+**Why Listening on every interface is dangerous?**<br>
+If the application listening on `0.0.0.0:8080`, it is basically listening to each network interface available in the machine, packets from anywhere can reach the application.
+`0.0.0.0:8080` means, “Accept TCP connections sent to port 8080 on any IPv4 address currently assigned to this machine.”
+
 
 ## tcpdump
 
