@@ -87,6 +87,7 @@ Network portion: Which network/subnet does this device belong to?<br>
 Host portion: Which particular device/interface is this within that network?
 
 Example, `192.168.254.0/24` is a subnet(subnet means group of IPs)<br>
+The `/` portion after IP is known as CIDR(`/16`, `/8`, etc)
 `/24` means the first 24 bits (i.e., the first 3 bytes: `192.168.254`) are the network portion.<br>
 The remaining 8 bits (the last byte) are the host portion. With 8 host bits → 2⁸ = 256 total addresses.
 
@@ -181,7 +182,8 @@ It broadcasts a DHCP request using its MAC address.<br>
 2. IP addresses change; MAC addresses don't.<br>
 DHCP reassigns IPs. You move your laptop to a different Wi-Fi network — new IP, same MAC.
 
-## Communication within the same Subnet 
+
+# Communication within the same Subnet 
 
 Host A (IP: `10.0.0.2`, MAC: AA) wants to send to Host B (IP: `10.0.0.5`, MAC: ??)
 
@@ -225,7 +227,7 @@ Now Host A can send Frames to Host B.<br>
 Host A send Frame to the Switch.<br>
 Switch receives it and check the MAC address, verify its Port to MAC mapping, and forwards the Frame directly to Host B.
 
-## Communication on Different Subnet
+# Communication on Different Subnet
 
 Device A (`10.0.0.2`) wants to reach Server X (`1.2.3.4`) — on the other side of the internet
 
@@ -258,6 +260,20 @@ Jio / Airtel / Tata Communications, AWS, Google, universities and large enterpri
 BGP is the protocol that let these large networks on the Internet tell each other which IP address ranges they can reach.<br>
 It runs between routers at network boundaries especially ISPs, cloud providers, CDNs, and very large companies, not between laptop and switch.<br>
 
+## Port Forwarding
+An application is running on a laptop at port 4200 (`192.168.1.21:4200`)<br>
+Any other machine in the same subnet can access the application by visiting `192.168.1.21:4200`.<br>
+but throws an error when accessed from outside the network<br>
+Switching from private IP to public IP of router will not work (Accessing `49.36.144.195:4200` will not work).
+
+I want application running locally on my laptop can be accessible by anyone outside my subnet?
+You must explicitly teach the router how to route incoming traffic to the correct internal device.
+
+Port forwarding is a router configuration technique where incoming traffic on a specific port is redirected to a specific device and port on the internal network.
+
+There is a table inside router settings, Firewall -> Port Forwarding<br>
+Mention a rule there:<br>
+If router receive a request on the public IP, on port 8080, forward it to `192.168.1.21` (my machine).
 
 # Network Interface Card (NIC) and MAC Address
 
